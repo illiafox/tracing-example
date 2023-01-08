@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "14268:14268"
+      - "16686:16686"
+
+
+  redis:
+    restart: on-failure
+
+    image: "redis:latest"
+
+    command: redis-server --port 6379
+
+    ports:
+      - "6379:6379"
+
+    environment:
+      REDIS_REPLICATION_MODE: master
+
+    volumes:
+      - redis-data:/var/lib/redis
+
+volumes:
+  redis-data:
