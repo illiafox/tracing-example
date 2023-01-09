@@ -4,6 +4,8 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"time"
 	"trace-example/models"
@@ -42,6 +44,10 @@ func (h FiberHandler) CreateNote(fiberctx *fiber.Ctx) error {
 		Created: time.Now(),
 	})
 	if err != nil {
+		span.RecordError(err, trace.WithAttributes(
+			attribute.String("SomeErrorInfo", "FATAL!!!!")),
+		)
+		span.SetStatus(codes.Error, err.Error())
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -67,6 +73,8 @@ func (h FiberHandler) GetNote(fiberctx *fiber.Ctx) error {
 		if errors.Is(err, models.ErrNotFound) {
 			return fiber.NewError(fiber.StatusNotFound, err.Error())
 		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
